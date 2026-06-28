@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-grass: #4c7c0c;
+  --color-grass-light: #558414;
+  --color-urgent: #D93664;
+  --color-info-bg: #e8f4fd;
+  --color-info-text: #1a5a8c;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: #fff;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for stadium listings */
+.seat-listings::-webkit-scrollbar {
+  width: 6px;
+}
+.seat-listings::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.seat-listings::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
