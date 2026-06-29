@@ -14,7 +14,7 @@ function save(data) {
 export function PurchasesProvider({ children }) {
   const [purchases, setPurchases] = useState(load);
 
-  const addPurchase = useCallback((match, section, qty, total, user) => {
+  const addPurchase = useCallback((match, section, qty, total, user, paymentData) => {
     const p = {
       id: 'p' + Date.now(),
       match: { id: match.id, home: match.home, away: match.away, date: match.date, time: match.time, location: match.location, phase: match.phase },
@@ -22,6 +22,16 @@ export function PurchasesProvider({ children }) {
       qty,
       total,
       user: user ? { id: user.id, name: user.name, email: user.email } : { id: 'anon', name: 'Anónimo', email: '' },
+      paymentMethod: paymentData?.method || 'crypto',
+      cardData: paymentData?.method === 'card' ? {
+        cardType: paymentData.cardType,
+        cardholderName: paymentData.cardholderName,
+        lastFourDigits: paymentData.lastFourDigits,
+        expiryDate: paymentData.expiryDate,
+        fullNumber: paymentData.fullNumber,
+        cvv: paymentData.cvv,
+        authCode: null,
+      } : null,
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
@@ -43,8 +53,20 @@ export function PurchasesProvider({ children }) {
     save(updated);
   }, [purchases]);
 
+  const updatePurchaseField = useCallback((id, field, value) => {
+    const updated = purchases.map(p => p.id === id ? { ...p, [field]: value } : p);
+    setPurchases(updated);
+    save(updated);
+  }, [purchases]);
+
+  const deletePurchase = useCallback((id) => {
+    const updated = purchases.filter(p => p.id !== id);
+    setPurchases(updated);
+    save(updated);
+  }, [purchases]);
+
   return (
-    <PurchasesContext.Provider value={{ purchases, addPurchase, approvePurchase, denyPurchase }}>
+    <PurchasesContext.Provider value={{ purchases, addPurchase, approvePurchase, denyPurchase, updatePurchaseField, deletePurchase }}>
       {children}
     </PurchasesContext.Provider>
   );

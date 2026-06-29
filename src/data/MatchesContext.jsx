@@ -90,59 +90,80 @@ export function Flag({ team, className = "inline-block w-5 h-4 align-middle" }) 
   return <span className={className}>{TEAM_FLAGS[team] || ''}</span>;
 }
 
-function generate60pct() {
-  const base = generateInitialSections();
-  const shuffled = [...base].sort(() => Math.random() - 0.5);
-  const sixtyPct = Math.max(1, Math.round(shuffled.length * 0.6));
-  return shuffled.map((s, i) => ({
+function generate80pct() {
+  return apply8020(generateInitialSections());
+}
+
+function generate1500Sections() {
+  return apply8020(generateInitialSections()).map(s => ({
     ...s,
-    esta_activa: i < sixtyPct,
-    asientos_disponibles: i < sixtyPct ? Math.floor(Math.random() * 5) + 1 : 0,
+    precio_base: 1500,
   }));
 }
 
+function autoDeactivatePastMatches(matches) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  return matches.map(m => {
+    const matchDate = new Date(m.date + 'T12:00:00').getTime();
+    if (matchDate < today) {
+      return {
+        ...m,
+        asientosEstadio: m.asientosEstadio.map(s => ({
+          ...s,
+          esta_activa: false,
+          asientos_disponibles: 0,
+        }))
+      };
+    }
+    return m;
+  });
+}
+
 const DEFAULT_MATCHES = [
-  { id: 'm1', home: "Marruecos", away: "Haití", date: "2026-06-24", time: "18:00", location: "Atlanta, GA, US", totalTickets: 71000, phase: "Partido 50 - C", asientosEstadio: generate60pct() },
-  { id: 'm2', home: "Escocia", away: "Brasil", date: "2026-06-24", time: "18:00", location: "Miami, FL, US", totalTickets: 65000, phase: "Partido 49 - C", asientosEstadio: generate60pct() },
-  { id: 'm3', home: "Chequia", away: "México", date: "2026-06-24", time: "19:00", location: "Ciudad de México, MX", totalTickets: 87000, phase: "Partido 53 - A", asientosEstadio: generate60pct() },
-  { id: 'm4', home: "Sudáfrica", away: "Corea del Sur", date: "2026-06-24", time: "19:00", location: "Monterrey, MX", totalTickets: 53500, phase: "Partido 54 - A", asientosEstadio: generate60pct() },
-  { id: 'm5', home: "Curazao", away: "Côte d'Ivoire", date: "2026-06-25", time: "16:00", location: "Philadelphia, PA, US", totalTickets: 69000, phase: "Partido 55 - E", asientosEstadio: generate60pct() },
-  { id: 'm6', home: "Ecuador", away: "Alemania", date: "2026-06-25", time: "16:00", location: "East Rutherford, NJ, US", totalTickets: 82500, phase: "Partido 56 - E", asientosEstadio: generate60pct() },
-  { id: 'm7', home: "Japón", away: "Suecia", date: "2026-06-25", time: "18:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 57 - F", asientosEstadio: generate60pct() },
-  { id: 'm8', home: "Túnez", away: "Países Bajos", date: "2026-06-25", time: "18:00", location: "Kansas City, MO, US", totalTickets: 76000, phase: "Partido 58 - F", asientosEstadio: generate60pct() },
-  { id: 'm9', home: "Paraguay", away: "Australia", date: "2026-06-25", time: "19:00", location: "Santa Clara, CA, US", totalTickets: 68500, phase: "Partido 60 - D", asientosEstadio: generate60pct() },
-  { id: 'm10', home: "Turquía", away: "Estados Unidos", date: "2026-06-25", time: "19:00", location: "Inglewood, CA, US", totalTickets: 70000, phase: "Partido 59 - D", asientosEstadio: generate60pct() },
-  { id: 'm11', home: "Senegal", away: "Irak", date: "2026-06-26", time: "15:00", location: "Toronto, CA", totalTickets: 40000, phase: "Partido 62 - I", asientosEstadio: generate60pct() },
-  { id: 'm12', home: "Noruega", away: "Francia", date: "2026-06-26", time: "15:00", location: "Foxborough, MA, US", totalTickets: 65000, phase: "Partido 61 - I", asientosEstadio: generate60pct() },
-  { id: 'm13', home: "Uruguay", away: "España", date: "2026-06-26", time: "18:00", location: "Zapopan, MX", totalTickets: 49000, phase: "Partido 66 - H", asientosEstadio: generate60pct() },
-  { id: 'm14', home: "Cabo Verde", away: "Arabia Saudí", date: "2026-06-26", time: "19:00", location: "Houston, TX, US", totalTickets: 72000, phase: "Partido 65 - H", asientosEstadio: generate60pct() },
-  { id: 'm15', home: "Nueva Zelanda", away: "Bélgica", date: "2026-06-26", time: "20:00", location: "Vancouver, CA", totalTickets: 54500, phase: "Partido 64 - G", asientosEstadio: generate60pct() },
-  { id: 'm16', home: "Egipto", away: "Irán", date: "2026-06-26", time: "20:00", location: "Seattle, WA, US", totalTickets: 69000, phase: "Partido 63 - G", asientosEstadio: generate60pct() },
-  { id: 'm17', home: "Croacia", away: "Ghana", date: "2026-06-27", time: "17:00", location: "Philadelphia, PA, US", totalTickets: 69000, phase: "Partido 68 - L", asientosEstadio: generate60pct() },
-  { id: 'm18', home: "Panamá", away: "Inglaterra", date: "2026-06-27", time: "17:00", location: "East Rutherford, NJ, US", totalTickets: 82500, phase: "Partido 67 - L", asientosEstadio: generate60pct() },
-  { id: 'm19', home: "Rep. Dem. del Congo", away: "Uzbekistán", date: "2026-06-27", time: "19:30", location: "Atlanta, GA, US", totalTickets: 71000, phase: "Partido 72 - K", asientosEstadio: generate60pct() },
-  { id: 'm20', home: "Colombia", away: "Portugal", date: "2026-06-27", time: "19:30", location: "Miami, FL, US", totalTickets: 65000, phase: "Partido 71 - K", asientosEstadio: generate60pct() },
-  { id: 'm21', home: "Jordania", away: "Argentina", date: "2026-06-27", time: "21:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 70 - J", asientosEstadio: generate60pct() },
-  { id: 'm22', home: "Argelia", away: "Austria", date: "2026-06-27", time: "21:00", location: "Kansas City, MO, US", totalTickets: 76000, phase: "Partido 69 - J", asientosEstadio: generate60pct() },
-  { id: 'm23', home: "Sudáfrica", away: "Canadá", date: "2026-06-28", time: "15:00", location: "Inglewood, CA, US", totalTickets: 70000, phase: "Partido 73 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm24', home: "Brasil", away: "Japón", date: "2026-06-29", time: "13:00", location: "Houston, TX, US", totalTickets: 72000, phase: "Partido 76 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm25', home: "Alemania", away: "Paraguay", date: "2026-06-29", time: "16:30", location: "Foxborough, MA, US", totalTickets: 65000, phase: "Partido 74 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm26', home: "Países Bajos", away: "Marruecos", date: "2026-06-29", time: "21:00", location: "Monterrey, MX", totalTickets: 53500, phase: "Partido 75 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm27', home: "Costa de Marfil", away: "Noruega", date: "2026-06-30", time: "13:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 78 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm28', home: "Francia", away: "Suecia", date: "2026-06-30", time: "17:00", location: "East Rutherford, NJ, US", totalTickets: 82500, phase: "Partido 77 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm29', home: "México", away: "Por Determinar", date: "2026-06-30", time: "19:00", location: "Ciudad de México, MX", totalTickets: 87000, phase: "Partido 79 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm30', home: "Por Determinar", away: "Por Determinar", date: "2026-07-01", time: "12:00", location: "Atlanta, GA, US", totalTickets: 71000, phase: "Partido 80 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm31', home: "Por Determinar", away: "Por Determinar", date: "2026-07-01", time: "13:00", location: "Seattle, WA, US", totalTickets: 69000, phase: "Partido 82 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm32', home: "Estados Unidos", away: "Bosnia y Herzegovina", date: "2026-07-01", time: "20:00", location: "Santa Clara, CA, US", totalTickets: 68500, phase: "Partido 81 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm33', home: "Por Determinar", away: "Por Determinar", date: "2026-07-02", time: "12:00", location: "Inglewood, CA, US", totalTickets: 70000, phase: "Partido 84 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm34', home: "Por Determinar", away: "Por Determinar", date: "2026-07-02", time: "19:00", location: "Toronto, CA", totalTickets: 40000, phase: "Partido 83 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm35', home: "Suiza", away: "Por Determinar", date: "2026-07-02", time: "20:00", location: "Vancouver, CA", totalTickets: 54500, phase: "Partido 85 - 16avos", asientosEstadio: generate60pct() },
-  { id: 'm36', home: "Argentina", away: "Cabo Verde", date: "2026-07-03", time: "18:00", location: "Miami, FL, US", totalTickets: 65000, phase: "Partido 88 - 16avos", asientosEstadio: generate60pct() },
+  { id: 'm1', home: "Marruecos", away: "Haití", date: "2026-06-24", time: "18:00", location: "Atlanta, GA, US", totalTickets: 71000, phase: "Partido 50 - C", asientosEstadio: generate80pct() },
+  { id: 'm2', home: "Escocia", away: "Brasil", date: "2026-06-24", time: "18:00", location: "Miami, FL, US", totalTickets: 65000, phase: "Partido 49 - C", asientosEstadio: generate80pct() },
+  { id: 'm3', home: "Chequia", away: "México", date: "2026-06-24", time: "19:00", location: "Ciudad de México, MX", totalTickets: 87000, phase: "Partido 53 - A", asientosEstadio: generate80pct() },
+  { id: 'm4', home: "Sudáfrica", away: "Corea del Sur", date: "2026-06-24", time: "19:00", location: "Monterrey, MX", totalTickets: 53500, phase: "Partido 54 - A", asientosEstadio: generate80pct() },
+  { id: 'm5', home: "Curazao", away: "Côte d'Ivoire", date: "2026-06-25", time: "16:00", location: "Philadelphia, PA, US", totalTickets: 69000, phase: "Partido 55 - E", asientosEstadio: generate80pct() },
+  { id: 'm6', home: "Ecuador", away: "Alemania", date: "2026-06-25", time: "16:00", location: "East Rutherford, NJ, US", totalTickets: 82500, phase: "Partido 56 - E", asientosEstadio: generate80pct() },
+  { id: 'm7', home: "Japón", away: "Suecia", date: "2026-06-25", time: "18:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 57 - F", asientosEstadio: generate80pct() },
+  { id: 'm8', home: "Túnez", away: "Países Bajos", date: "2026-06-25", time: "18:00", location: "Kansas City, MO, US", totalTickets: 76000, phase: "Partido 58 - F", asientosEstadio: generate80pct() },
+  { id: 'm9', home: "Paraguay", away: "Australia", date: "2026-06-25", time: "19:00", location: "Santa Clara, CA, US", totalTickets: 68500, phase: "Partido 60 - D", asientosEstadio: generate80pct() },
+  { id: 'm10', home: "Turquía", away: "Estados Unidos", date: "2026-06-25", time: "19:00", location: "Inglewood, CA, US", totalTickets: 70000, phase: "Partido 59 - D", asientosEstadio: generate80pct() },
+  { id: 'm11', home: "Senegal", away: "Irak", date: "2026-06-26", time: "15:00", location: "Toronto, CA", totalTickets: 40000, phase: "Partido 62 - I", asientosEstadio: generate80pct() },
+  { id: 'm12', home: "Noruega", away: "Francia", date: "2026-06-26", time: "15:00", location: "Foxborough, MA, US", totalTickets: 65000, phase: "Partido 61 - I", asientosEstadio: generate80pct() },
+  { id: 'm13', home: "Uruguay", away: "España", date: "2026-06-26", time: "18:00", location: "Zapopan, MX", totalTickets: 49000, phase: "Partido 66 - H", asientosEstadio: generate80pct() },
+  { id: 'm14', home: "Cabo Verde", away: "Arabia Saudí", date: "2026-06-26", time: "19:00", location: "Houston, TX, US", totalTickets: 72000, phase: "Partido 65 - H", asientosEstadio: generate80pct() },
+  { id: 'm15', home: "Nueva Zelanda", away: "Bélgica", date: "2026-06-26", time: "20:00", location: "Vancouver, CA", totalTickets: 54500, phase: "Partido 64 - G", asientosEstadio: generate80pct() },
+  { id: 'm16', home: "Egipto", away: "Irán", date: "2026-06-26", time: "20:00", location: "Seattle, WA, US", totalTickets: 69000, phase: "Partido 63 - G", asientosEstadio: generate80pct() },
+  { id: 'm17', home: "Croacia", away: "Ghana", date: "2026-06-27", time: "17:00", location: "Philadelphia, PA, US", totalTickets: 69000, phase: "Partido 68 - L", asientosEstadio: generate80pct() },
+  { id: 'm18', home: "Panamá", away: "Inglaterra", date: "2026-06-27", time: "17:00", location: "East Rutherford, NJ, US", totalTickets: 82500, phase: "Partido 67 - L", asientosEstadio: generate80pct() },
+  { id: 'm19', home: "Rep. Dem. del Congo", away: "Uzbekistán", date: "2026-06-27", time: "19:30", location: "Atlanta, GA, US", totalTickets: 71000, phase: "Partido 72 - K", asientosEstadio: generate80pct() },
+  { id: 'm20', home: "Colombia", away: "Portugal", date: "2026-06-27", time: "19:30", location: "Miami, FL, US", totalTickets: 65000, phase: "Partido 71 - K", asientosEstadio: generate80pct() },
+  { id: 'm21', home: "Jordania", away: "Argentina", date: "2026-06-27", time: "21:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 70 - J", asientosEstadio: generate80pct() },
+  { id: 'm22', home: "Argelia", away: "Austria", date: "2026-06-27", time: "21:00", location: "Kansas City, MO, US", totalTickets: 76000, phase: "Partido 69 - J", asientosEstadio: generate80pct() },
+  { id: 'm23', home: "Sudáfrica", away: "Canadá", date: "2026-06-28", time: "15:00", location: "Inglewood, CA, US", totalTickets: 70000, phase: "Partido 73 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm24', home: "Brasil", away: "Japón", date: "2026-06-29", time: "13:00", location: "Houston, TX, US", totalTickets: 72000, phase: "Partido 76 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm25', home: "Alemania", away: "Paraguay", date: "2026-06-29", time: "16:30", location: "Foxborough, MA, US", totalTickets: 65000, phase: "Partido 74 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm26', home: "Países Bajos", away: "Marruecos", date: "2026-06-29", time: "21:00", location: "Monterrey, MX", totalTickets: 53500, phase: "Partido 75 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm27', home: "Costa de Marfil", away: "Noruega", date: "2026-06-30", time: "13:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 78 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm28', home: "Francia", away: "Suecia", date: "2026-06-30", time: "17:00", location: "East Rutherford, NJ, US", totalTickets: 82500, phase: "Partido 77 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm29', home: "México", away: "Ecuador", date: "2026-06-30", time: "19:00", location: "Ciudad de México, MX", totalTickets: 87000, phase: "Partido 79 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm30', home: "Inglaterra", away: "Rep. Dem. del Congo", date: "2026-07-01", time: "12:00", location: "Atlanta, GA, US", totalTickets: 71000, phase: "Partido 80 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm31', home: "Bélgica", away: "Senegal", date: "2026-07-01", time: "13:00", location: "Seattle, WA, US", totalTickets: 69000, phase: "Partido 82 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm32', home: "Estados Unidos", away: "Bosnia y Herzegovina", date: "2026-07-01", time: "20:00", location: "Santa Clara, CA, US", totalTickets: 68500, phase: "Partido 81 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm33', home: "España", away: "Austria", date: "2026-07-02", time: "12:00", location: "Inglewood, CA, US", totalTickets: 70000, phase: "Partido 84 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm34', home: "Portugal", away: "Croacia", date: "2026-07-02", time: "19:00", location: "Toronto, CA", totalTickets: 40000, phase: "Partido 83 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm35', home: "Suiza", away: "Argelia", date: "2026-07-02", time: "20:00", location: "Vancouver, CA", totalTickets: 54500, phase: "Partido 85 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm36', home: "Argentina", away: "Cabo Verde", date: "2026-07-03", time: "18:00", location: "Miami, FL, US", totalTickets: 65000, phase: "Partido 88 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm37', home: "Australia", away: "Egipto", date: "2026-07-03", time: "15:00", location: "Arlington, TX, US", totalTickets: 80000, phase: "Partido 86 - 16avos", asientosEstadio: generate1500Sections() },
+  { id: 'm38', home: "Colombia", away: "Ghana", date: "2026-07-03", time: "21:00", location: "Kansas City, MO, US", totalTickets: 76000, phase: "Partido 87 - 16avos", asientosEstadio: generate1500Sections() },
 ];
 
 const MatchesContext = createContext();
 
-const STORAGE_KEY = '_d7k';
+const STORAGE_KEY = '_d7k_v2';
 
 function loadSaved() {
   try {
@@ -159,7 +180,7 @@ function saveState(data) {
 }
 
 export function MatchesProvider({ children }) {
-  const [matches, setMatches] = useState(() => loadSaved() || DEFAULT_MATCHES);
+  const [matches, setMatches] = useState(() => autoDeactivatePastMatches(loadSaved() || DEFAULT_MATCHES));
 
   const persist = useCallback((fn) => {
     setMatches(prev => {
@@ -170,7 +191,7 @@ export function MatchesProvider({ children }) {
   }, []);
 
   const addMatch = useCallback((m) => {
-    const asientosEstadio = generate60pct();
+    const asientosEstadio = generate80pct();
     persist(prev => [...prev, { ...m, id: 'm' + Date.now(), asientosEstadio }]);
   }, [persist]);
 

