@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../data/AuthContext';
 
-export default function LoginModal({ isOpen, onClose }) {
+export default function LoginModal({ isOpen, onClose, onRegisterSuccess }) {
   const { login, register } = useAuth();
   const [mode, setMode] = useState('login');
   const [name, setName] = useState('');
@@ -22,7 +22,7 @@ export default function LoginModal({ isOpen, onClose }) {
       if (!name.trim()) { setError('El nombre es obligatorio'); return; }
       const r = register(name, email, password);
       if (r.error) setError(r.error);
-      else onClose();
+      else { if (onRegisterSuccess) onRegisterSuccess(); else onClose(); }
     }
   }
 

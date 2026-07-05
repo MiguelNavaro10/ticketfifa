@@ -283,6 +283,8 @@ export default function FinalizarCompra({ match, section, qty, onBack, onFinish 
       id: 'card',
       label: 'Tarjeta (Visa / Mastercard)',
       icon: '💳',
+      disabled: true,
+      alert: 'Método no disponible',
     },
     {
       id: 'apple',

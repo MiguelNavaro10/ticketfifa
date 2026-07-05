@@ -136,7 +136,7 @@ export default function Navbar({ onHome, onNavLink, onMisEntradas }) {
         </div>
       </nav>
 
-      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
+      <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} onRegisterSuccess={() => { setLoginOpen(false); onHome(); }} />
     </>
   );
 }
